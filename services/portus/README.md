@@ -34,7 +34,7 @@ make up
 
 ```console
 make help
-make create-certificates
+make certificates
 make up
 make info
 ```

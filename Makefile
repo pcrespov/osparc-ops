@@ -1,5 +1,5 @@
+# Main osparc-ops recipes
 #
-# TODO: not fully windows-friendly (e.g. some tools to install or replace e.g. date, ...  )
 #
 # by sanderegg, pcrespov
 .DEFAULT_GOAL := help
@@ -34,8 +34,7 @@ certificates/domain.crt: certificates/domain.key
 certificates/domain.key:
 	# domain key/crt files must be located in $< and certificates/domain.crt to be used
 	@echo -n "No $< certificate detected, do you wish to create self-signed certificates? [y/N] " && read ans && [ $${ans:-N} = y ]; \
-	$(MAKE) -C certificates create-certificates; \
-	$(MAKE) -C certificates install-root-certificate;
+	$(MAKE) -C certificates certificates root-certificate
 
 .PHONY: .secrets
 .secrets:
@@ -97,10 +96,11 @@ devenv: .venv .vscode/settings.json ## Creates a python virtual environment with
 
 
 # Misc: info & clean
-.PHONY: info info-vars info-local
+.PHONY: info info-local
 info: ## Displays some important info
 	$(info - Detected OS : $(IS_LINUX)$(IS_OSX)$(IS_WSL)$(IS_WIN))
 	# done
+
 
 info-local: ## Displays the links to the different services e.g. 'make info-local >SITES.md'
 	# Links in local mode:
@@ -119,6 +119,8 @@ info-local: ## Displays the links to the different services e.g. 'make info-loca
 clean: .check_clean ## Cleans all outputs
 	# removing unversioned
 	@git clean -dxf -e .vscode/
+	# removing certifications
+	$(MAKE) -c certificates clean
 
 .check_clean:
 	@git clean -ndxf

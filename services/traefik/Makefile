@@ -130,11 +130,11 @@ secrets/domain.crt: secrets/domain.csr secrets/rootca.crt secrets/rootca.key ext
 		extfile.cnf -CAkey secrets/rootca.key -CAcreateserial \
 		-out secrets/domain.crt -days 500 -sha256
 
-.PHONY: create-certificates
-create-certificates: secrets/domain.crt secrets/domain.key secrets/rootca.crt ## create self-signed certificates and ca authority
+.PHONY: certificates
+certificates: secrets/domain.crt secrets/domain.key secrets/rootca.crt ## create self-signed certificates and ca authority
 
-.PHONY: install-root-certificate
-install-root-certificate: secrets/rootca.crt ## installs a certificate in the host system
+.PHONY: root-certificate
+root-certificate: secrets/rootca.crt ## installs a certificate in the host system
 	# installing certificate in trusted root certificates and restarting docker daemon...
 	@$(if $(IS_WSL),                                            \
 		certutil.exe -user -addstore -f root $<;				\
@@ -185,4 +185,3 @@ remove-root-certificate: ## removes the certificate from the host system
 	@if [[ ! $$(docker secret ls | grep -w domain.crt) ]]; then docker secret create domain.crt secrets/domain.crt; fi;
 	@if [[ ! $$(docker secret ls | grep -w domain.key) ]]; then docker secret create domain.key secrets/domain.key; fi;
 	@if [[ ! $$(docker secret ls | grep -w rootca.crt) ]]; then if [ ! -f secrets/rootca.crt ]; then cp secrets/domain.crt secrets/rootca.crt; fi; docker secret create rootca.crt secrets/rootca.crt; fi;
-

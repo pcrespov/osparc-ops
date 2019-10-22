@@ -24,8 +24,8 @@ SWARM_HOSTS = $(shell docker node ls --format={{.Hostname}} 2>/dev/null)
 
 # CERTIFICATES --------------------------------------------------
 
-.PHONY: create-certificates
-create-certificates: rootca.crt domain.crt domain.key ## create self-signed certificates and ca authority
+.PHONY: certificates
+certificates: rootca.crt domain.crt domain.key ## create self-signed certificates and ca authority
 
 .PHONY: deploy
 deploy: .init
@@ -66,8 +66,8 @@ domain.crt: domain.csr rootca.crt rootca.key extfile.cnf
 		-out domain.crt \
 		-days 500 -sha256
 
-.PHONY: install-root-certificate
-install-root-certificate: rootca.crt ## installs a certificate in the host system
+.PHONY: root-certificate
+root-certificate: rootca.crt ## installs a certificate in the host system
 	# installing certificate in trusted root certificates and restarting docker daemon...
 	@$(if $(IS_WSL),                                            \
 		certutil.exe -user -addstore -f root $<;				\
@@ -115,9 +115,12 @@ info: ## relevant info on certificates
 clean: .check_clean ## Cleans all outputs
 	# removing unversioned
 	@git clean -dxf -e .vscode/
+	# removing installed certificates
+	@$(MAKE) remove-root-certificate
 
 .check_clean:
 	@git clean -ndxf
+	@echo "Would remove root-certificate"
 	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 	@echo -n "$(shell whoami), are you REALLY sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 

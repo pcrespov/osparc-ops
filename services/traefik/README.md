@@ -30,7 +30,7 @@ MACHINE_FQDN=*.osparc.local # Replace with the wanted host name
 
 ```console
 make help
-make create-certificates
+make certificates
 make up
 make info
 ```
@@ -48,7 +48,7 @@ make info
 ### example configuration of a service that gets reverse-proxied
 
 ```console
-make create-certificates
+make certificates
 make up
 cd tests
 make up

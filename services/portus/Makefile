@@ -133,7 +133,7 @@ secrets/rootca.crt: secrets/rootca.key
 		-subj "/C=US/ST=sparc/O=oSparc/CN=IT'IS oSparc" \
 		-sha256 -days 10000 -out $@;
 
-install-root-certificate: secrets/rootca.crt ## installs a certificate in the host system
+root-certificate: secrets/rootca.crt ## installs a certificate in the host system
 	# installing certificate in trusted root certificates and restarting docker daemon...
 	@$(if $(IS_WSL),                                            \
 		certutil.exe -user -addstore -f root $<;				\
@@ -175,8 +175,8 @@ secrets/domain.crt: secrets/portus.csr secrets/rootca.crt secrets/rootca.key ext
 		extfile.cnf -CAkey secrets/rootca.key -CAcreateserial \
 		-out secrets/domain.crt -days 500 -sha256
 
-.PHONY: create-certificates
-create-certificates: secrets/domain.crt secrets/domain.key secrets/rootca.crt
+.PHONY: certificates
+certificates: secrets/domain.crt secrets/domain.key secrets/rootca.crt
 
 # host
 .PHONY: .install-fqdn
