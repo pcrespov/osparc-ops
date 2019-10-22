@@ -1,9 +1,8 @@
 #
 #
 # by sanderegg, pcrespov
-
-PREDEFINED_VARIABLES := $(.VARIABLES)
-VERSION := $(shell uname -a)
+.DEFAULT_GOAL := help
+VERSION       := $(shell uname -a)
 
 # Operating system
 ifeq ($(filter Windows_NT,$(OS)),)
@@ -19,10 +18,9 @@ SHELL := /bin/bash
 
 include $(CURDIR)/../repo.config
 
-MACHINE_IP = $(shell hostname -I | cut -d' ' -f1)
+MACHINE_IP  = $(shell hostname -I | cut -d' ' -f1)
 SWARM_HOSTS = $(shell docker node ls --format={{.Hostname}} 2>/dev/null)
 
-.DEFAULT_GOAL := help
 
 # CERTIFICATES --------------------------------------------------
 
@@ -113,15 +111,6 @@ info: ## relevant info on certificates
 	@echo $(wildcard *.cnf)
 
 
-
-info-var: ## Displays some parameters of makefile environments (debugging)
-	$(info VARIABLES: )
-	$(foreach v,                                                                           \
-		$(filter-out $(PREDEFINED_VARIABLES) PREDEFINED_VARIABLES, $(sort $(.VARIABLES))), \
-		$(info - $(v) = $($(v))  [in $(origin $(v))])                                      \
-	)
-	# done
-
 .PHONY: clean .check_clean
 clean: .check_clean ## Cleans all outputs
 	# removing unversioned
@@ -133,7 +122,5 @@ clean: .check_clean ## Cleans all outputs
 	@echo -n "$(shell whoami), are you REALLY sure? [y/N] " && read ans && [ $${ans:-N} = y ]
 
 .init:
-	$(if $(SWARM_HOSTS),  \
-		,                 \
-		docker swarm init \
-	)
+	# ensures swarm init
+	$(if $(SWARM_HOSTS),,docker swarm init)
