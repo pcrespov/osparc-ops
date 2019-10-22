@@ -2,8 +2,7 @@
 # TODO: not fully windows-friendly (e.g. some tools to install or replace e.g. date, ...  )
 #
 # by sanderegg, pcrespov
-
-PREDEFINED_VARIABLES := $(.VARIABLES)
+.DEFAULT_GOAL := help
 VERSION := $(shell uname -a)
 
 # Operating system
@@ -24,8 +23,12 @@ MACHINE_IP = $(shell hostname -I | cut -d' ' -f1)
 include repo.config
 
 SERVICES = $(sort $(wildcard services/*))
+
 # TARGETS --------------------------------------------------
-.DEFAULT_GOAL := help
+.vscode/settings.json: .vscode-template/settings.json
+	$(info WARNING: #####  $< is newer than $@ ####)
+	@diff -uN $@ $<
+	@false
 
 certificates/domain.crt: certificates/domain.key
 certificates/domain.key:
@@ -34,17 +37,18 @@ certificates/domain.key:
 	$(MAKE) -C certificates create-certificates; \
 	$(MAKE) -C certificates install-root-certificate;
 
-.PHONY: .create-secrets
-.create-secrets:
-	$(MAKE) -C certificates deploy
+.PHONY: .secrets
+.secrets:
+	# Deploying certificates
+	@$(MAKE) -C certificates deploy
 
 .PHONY: up-local
-up-local: .install-fqdn certificates/domain.crt certificates/domain.key .create-secrets ## deploy osparc ops stacks and simcore
+up-local: .install-fqdn certificates/domain.crt certificates/domain.key .secrets ## deploy osparc ops stacks and simcore
 	bash scripts/local-deploy.sh
 	@$(MAKE) info-local
 
 .PHONY: up-devel
-up-devel: .install-fqdn certificates/domain.crt certificates/domain.key .create-secrets ## deploy osparc ops stacks and simcore
+up-devel: .install-fqdn certificates/domain.crt certificates/domain.key .secrets ## deploy osparc ops stacks and simcore
 	bash scripts/local-deploy.sh --devel_mode=1
 	@$(MAKE) info-local
 
@@ -83,8 +87,7 @@ help: ## This colourful help
 
 
 .PHONY: venv
-# TODO: this is not windows friendly
-venv: .venv ## Creates a python virtual environment with dev tools (pip, pylint, ...)
+devenv: .venv .vscode/settings.json ## Creates a python virtual environment with dev tools (pip, pylint, ...)
 .venv:
 	@python3 -m venv .venv
 	@.venv/bin/pip3 install --upgrade pip wheel setuptools
@@ -97,14 +100,6 @@ venv: .venv ## Creates a python virtual environment with dev tools (pip, pylint,
 .PHONY: info info-vars info-local
 info: ## Displays some important info
 	$(info - Detected OS : $(IS_LINUX)$(IS_OSX)$(IS_WSL)$(IS_WIN))
-	# done
-
-info-vars: ## Displays some parameters of makefile environments (debugging)
-	$(info # variables: )
-	$(foreach v,                                                                           \
-		$(filter-out $(PREDEFINED_VARIABLES) PREDEFINED_VARIABLES, $(sort $(.VARIABLES))), \
-		$(info - $(v) = $($(v))  [in $(origin $(v))])                                      \
-	)
 	# done
 
 info-local: ## Displays the links to the different services e.g. 'make info-local >SITES.md'
